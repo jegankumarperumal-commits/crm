@@ -1,0 +1,130 @@
+@import 'tailwindcss';
+@import '../../vendor/livewire/flux/dist/flux.css';
+
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
+@source '../../vendor/livewire/flux/stubs/**/*.blade.php';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    --color-zinc-50: #fafafa;
+    --color-zinc-100: #f5f5f5;
+    --color-zinc-200: #e5e5e5;
+    --color-zinc-300: #d4d4d4;
+    --color-zinc-400: #a3a3a3;
+    --color-zinc-500: #737373;
+    --color-zinc-600: #525252;
+    --color-zinc-700: #404040;
+    --color-zinc-800: #262626;
+    --color-zinc-900: #171717;
+    --color-zinc-950: #0a0a0a;
+
+    --color-accent: var(--color-neutral-800);
+    --color-accent-content: var(--color-neutral-800);
+    --color-accent-foreground: var(--color-white);
+}
+
+@layer theme {
+    .dark {
+        --color-accent: var(--color-white);
+        --color-accent-content: var(--color-white);
+        --color-accent-foreground: var(--color-neutral-800);
+    }
+}
+
+@layer base {
+
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-gray-200, currentColor);
+    }
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+/* Bootstrap's own CSS sets `.modal { display: none; }` unconditionally and
+   expects its JS to set an inline `display: block` when shown — there's no
+   `.modal.show { display: block; }` counterpart in the stylesheet. Alpine's
+   `x-show` clears the inline override rather than restoring a specific value,
+   so without this rule the cascade falls back to Bootstrap's `none` and the
+   popup never becomes visible even though `open` is true. */
+.modal.show {
+    display: block;
+}
+
+[data-flux-field]:not(ui-radio, ui-checkbox) {
+    @apply grid gap-2;
+}
+
+[data-flux-label] {
+    @apply  !mb-0 !leading-tight;
+}
+
+input:focus[data-flux-control],
+textarea:focus[data-flux-control],
+select:focus[data-flux-control] {
+    @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
+}
+
+/* \[:where(&)\]:size-4 {
+    @apply size-4;
+} */
+
+/* CoolAdmin's `.section__content--p30` sets `position: relative; z-index: 1`,
+   which creates a stacking context that traps any position:fixed descendant
+   (Bootstrap modals) below Bootstrap's own backdrop (appended to <body> at
+   z-index 1050, outside this context). Neutralize it only while a modal is
+   open — Bootstrap adds `.modal-open` to <body> for exactly this purpose. */
+body.modal-open .section__content--p30 {
+    z-index: auto;
+}
+
+/* The floating theme-switcher's collapsed `__panel` is hidden via opacity
+   (pointer-events: none), not removed from layout, so its flex-column wrapper
+   still reserves the panel's full footprint above the toggle button. That
+   wrapper has no pointer-events rule of its own, so the reserved space stays
+   clickable and silently intercepts clicks on whatever page content sits
+   underneath it — most noticeable as an invisible dead zone over table rows
+   on shorter viewports. Make the wrapper inert by default and only let the
+   actual visible pieces (the toggle button always, the panel while open)
+   receive pointer events. */
+.theme-switcher {
+    pointer-events: none;
+}
+
+.theme-switcher__toggle {
+    pointer-events: auto;
+}
+
+/* Founder dashboard's "Needs My Attention" category tabs. Each button sets
+   --tab-color/--tab-soft inline (per its category), this just defines the
+   base/active look that reads those variables. */
+.attention-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--m-border, #e4e7ec);
+    background: var(--m-surface-2, #f8fafc);
+    color: var(--m-text-muted, #475569);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.attention-tab.is-active {
+    background: var(--tab-soft);
+    border-color: var(--tab-color);
+    color: var(--tab-color);
+}
