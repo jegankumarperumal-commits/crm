@@ -1,4 +1,4 @@
-<x-layouts::coolapp :title="__('Dashboard')">
+<x-layouts::coolapp :title="__('Dashboard')" :dark="true">
     <div class="page-header">
         <div>
             <h1>{{ __('Dashboard') }}</h1>
@@ -320,42 +320,112 @@
 
     {{-- CONVERSION SUMMARY + FINANCIAL SUMMARY --}}
     <div class="row row-tight" style="margin-top:16px;">
-        <div class="col-lg-6">
-            <section class="m-card" aria-labelledby="conversion-title">
+        <div class="col-lg-5">
+            <section class="m-card chart-card" aria-labelledby="conversion-title">
                 <header class="m-card__header">
                     <div>
                         <h2 class="m-card__title" id="conversion-title">{{ __('Conversion Summary') }}</h2>
+                        <p class="m-card__subtitle">{{ __(':total total leads', ['total' => $conversion['total']]) }}</p>
                     </div>
                 </header>
-                <table class="m-table">
-                    <tbody>
-                        <tr><td>{{ __('Total Leads') }}</td><td class="num">{{ $conversion['total'] }}</td></tr>
-                        <tr><td>{{ __('Active') }}</td><td class="num">{{ $conversion['active'] }}</td></tr>
-                        <tr><td>{{ __('Won') }}</td><td class="num">{{ $conversion['won'] }}</td></tr>
-                        <tr><td>{{ __('Lost') }}</td><td class="num">{{ $conversion['lost'] }}</td></tr>
-                        <tr><td>{{ __('Conversion Rate') }}</td><td class="num">{{ $conversion['rate'] }}%</td></tr>
-                    </tbody>
-                </table>
+
+                <div style="position:relative; height:190px; margin:4px 0 8px;">
+                    <canvas id="conversion-chart" role="img" aria-label="{{ __('Doughnut chart of active, won, and lost leads') }}"></canvas>
+                    <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none;">
+                        <span style="font-size:26px; font-weight:700; color:var(--m-text);">{{ $conversion['rate'] }}%</span>
+                        <span style="font-size:11px; color:var(--m-text-muted); text-transform:uppercase; letter-spacing:.04em;">{{ __('Won rate') }}</span>
+                    </div>
+                </div>
+
+                <div style="display:flex; flex-wrap:wrap; gap:8px; padding-top:4px;">
+                    <span style="display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--m-text-muted);"><span style="width:9px; height:9px; border-radius:50%; background:var(--m-c1);"></span>{{ __('Active') }} <strong style="color:var(--m-text);">{{ $conversion['active'] }}</strong></span>
+                    <span style="display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--m-text-muted);"><span style="width:9px; height:9px; border-radius:50%; background:var(--m-success);"></span>{{ __('Won') }} <strong style="color:var(--m-text);">{{ $conversion['won'] }}</strong></span>
+                    <span style="display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--m-text-muted);"><span style="width:9px; height:9px; border-radius:50%; background:var(--m-danger);"></span>{{ __('Lost') }} <strong style="color:var(--m-text);">{{ $conversion['lost'] }}</strong></span>
+                </div>
             </section>
         </div>
-        <div class="col-lg-6">
-            <section class="m-card" aria-labelledby="financial-title">
+        <div class="col-lg-7">
+            <section class="m-card chart-card" aria-labelledby="financial-title">
                 <header class="m-card__header">
                     <div>
                         <h2 class="m-card__title" id="financial-title">{{ __('Financial Summary') }}</h2>
+                        <p class="m-card__subtitle">{{ __('Pipeline value through to what\'s actually been collected.') }}</p>
                     </div>
                 </header>
-                <table class="m-table">
-                    <tbody>
-                        <tr><td>{{ __('Quotation Value') }}</td><td class="num">₹{{ number_format($financial['quotationValue'], 2) }}</td></tr>
-                        <tr><td>{{ __('Won Deal Value') }}</td><td class="num">₹{{ number_format($financial['wonDealValue'], 2) }}</td></tr>
-                        <tr><td>{{ __('Invoiced') }}</td><td class="num">₹{{ number_format($financial['invoiced'], 2) }}</td></tr>
-                        <tr><td>{{ __('Received') }}</td><td class="num">₹{{ number_format($financial['received'], 2) }}</td></tr>
-                        <tr><td>{{ __('Outstanding') }}</td><td class="num">₹{{ number_format($financial['outstanding'], 2) }}</td></tr>
-                        <tr><td>{{ __('Overdue') }}</td><td class="num">₹{{ number_format($financial['overdue'], 2) }}</td></tr>
-                    </tbody>
-                </table>
+                <div style="height:230px;">
+                    <canvas id="financial-chart" role="img" aria-label="{{ __('Bar chart of quotation value, won deal value, invoiced, received, outstanding, and overdue amounts') }}"></canvas>
+                </div>
             </section>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const isDashboardDark = document.body.classList.contains('dashboard-dark');
+            const gridColor = isDashboardDark ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.06)';
+            const tickColor = isDashboardDark ? '#9aa1ac' : '#475569';
+            const rupee = (value) => '₹' + Number(value).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+
+            new Chart(document.getElementById('conversion-chart'), {
+                type: 'doughnut',
+                data: {
+                    labels: [@json(__('Active')), @json(__('Won')), @json(__('Lost'))],
+                    datasets: [{
+                        data: [{{ $conversion['active'] }}, {{ $conversion['won'] }}, {{ $conversion['lost'] }}],
+                        backgroundColor: ['#5b8cf5', '#34d399', '#f87171'],
+                        borderColor: isDashboardDark ? '#121317' : '#ffffff',
+                        borderWidth: 3,
+                    }],
+                },
+                options: {
+                    cutout: '72%',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.parsed}` } },
+                    },
+                },
+            });
+
+            new Chart(document.getElementById('financial-chart'), {
+                type: 'bar',
+                data: {
+                    labels: [
+                        @json(__('Quotation Value')),
+                        @json(__('Won Deal Value')),
+                        @json(__('Invoiced')),
+                        @json(__('Received')),
+                        @json(__('Outstanding')),
+                        @json(__('Overdue')),
+                    ],
+                    datasets: [{
+                        data: [
+                            {{ $financial['quotationValue'] }},
+                            {{ $financial['wonDealValue'] }},
+                            {{ $financial['invoiced'] }},
+                            {{ $financial['received'] }},
+                            {{ $financial['outstanding'] }},
+                            {{ $financial['overdue'] }},
+                        ],
+                        backgroundColor: ['#5b8cf5', '#2dd4bf', '#fb923c', '#34d399', '#fbbf24', '#f87171'],
+                        borderRadius: 6,
+                        maxBarThickness: 44,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: (ctx) => rupee(ctx.parsed.y) } },
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: tickColor, font: { size: 11 } } },
+                        y: { grid: { color: gridColor }, ticks: { color: tickColor, callback: (value) => rupee(value) } },
+                    },
+                },
+            });
+        });
+    </script>
 </x-layouts::coolapp>

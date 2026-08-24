@@ -8405,3 +8405,101 @@ body.app .demo-label {
   letter-spacing: 0.06em;
   margin-bottom: 6px;
 }
+
+/* ============================================================================
+   Dashboard — dark theme
+   Opt-in only: <x-layouts::coolapp :dark="true"> adds `dashboard-dark` to
+   <body>. Every component above is already built on the --m-* custom
+   properties, so redeclaring them here re-skins the whole page (header,
+   cards, tables, buttons, badges) without touching any other route.
+   ============================================================================ */
+body.app.dashboard-dark {
+  --m-bg: #0a0b0f;
+  --m-surface: #121317;
+  --m-surface-2: #1a1c22;
+  --m-border: rgba(255, 255, 255, 0.08);
+  --m-border-soft: rgba(255, 255, 255, 0.05);
+  --m-divider: rgba(255, 255, 255, 0.07);
+  --m-text: #f1f2f4;
+  --m-text-muted: #9aa1ac;
+  --m-text-faint: #676e7a;
+
+  --m-accent: #5b8cf5;
+  --m-accent-rgb: 91, 140, 245;
+  --m-accent-hover: #7ba3f7;
+  --m-accent-soft: rgba(91, 140, 245, 0.16);
+
+  --m-c1: #5b8cf5;
+  --m-c1-soft: rgba(91, 140, 245, 0.16);
+  --m-c2: #2dd4bf;
+  --m-c2-soft: rgba(45, 212, 191, 0.16);
+  --m-c3: #fb923c;
+  --m-c3-soft: rgba(251, 146, 60, 0.16);
+  --m-c4: #f472b6;
+  --m-c4-soft: rgba(244, 114, 182, 0.16);
+
+  --m-success: #34d399;
+  --m-success-soft: rgba(52, 211, 153, 0.16);
+  --m-warning: #fbbf24;
+  --m-warning-soft: rgba(251, 191, 36, 0.16);
+  --m-danger: #f87171;
+  --m-danger-soft: rgba(248, 113, 113, 0.16);
+
+  --m-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --m-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --m-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --m-shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.55);
+}
+
+/* Subtle top-left glow behind the whole page — the "modern dashboard" hero
+   feel — layered under the flat --m-bg so cards/tables still read cleanly. */
+body.app.dashboard-dark .page-container {
+  background:
+    radial-gradient(1100px 420px at 18% -8%, rgba(91, 140, 245, 0.12), transparent 60%),
+    radial-gradient(900px 360px at 100% 0%, rgba(244, 114, 182, 0.06), transparent 55%),
+    var(--m-bg);
+}
+
+body.app.dashboard-dark .menu-sidebar {
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Cards lift slightly more on hover than the light theme's subtle version —
+   dark surfaces need a stronger cue that something is interactive. */
+body.app.dashboard-dark .stat-card,
+body.app.dashboard-dark .m-card {
+  transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+body.app.dashboard-dark .stat-card:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: var(--m-shadow-md);
+  transform: translateY(-2px);
+}
+
+/* Each KPI icon glows in its own accent color — the currentColor trick means
+   no per-variant rule is needed, it just follows whichever --m-c*/status
+   color the existing --icon class already set. */
+body.app.dashboard-dark .stat-card__icon {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04), 0 0 18px -4px currentColor;
+}
+
+body.app.dashboard-dark .stat-card__value {
+  background: linear-gradient(180deg, #ffffff, #c7cdd8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+body.app.dashboard-dark .page-header h1 {
+  background: linear-gradient(180deg, #ffffff, #a9b0bd);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Chart.js canvases (Conversion / Financial summary) sit directly in an
+   m-card with no extra wrapper markup, so just fix their box model. */
+body.app.dashboard-dark .chart-card canvas {
+  max-width: 100%;
+}

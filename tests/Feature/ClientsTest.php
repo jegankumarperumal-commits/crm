@@ -88,3 +88,28 @@ test('an invoice gets an auto-generated number once created', function () {
 
     expect($invoice->invoice_number)->toBe('INV-'.(2000 + $invoice->id));
 });
+
+test('a client can be deleted', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $client = Client::factory()->for($user, 'createdBy')->create();
+
+    Livewire::test('pages::clients.index')
+        ->call('deleteClient', $client->id);
+
+    expect(Client::find($client->id))->toBeNull();
+});
+
+test('an invoice can be deleted', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $client = Client::factory()->for($user, 'createdBy')->create();
+    $invoice = Invoice::factory()->for($client)->for($user, 'createdBy')->create();
+
+    Livewire::test('pages::clients.index')
+        ->call('deleteInvoice', $invoice->id);
+
+    expect(Invoice::find($invoice->id))->toBeNull();
+});

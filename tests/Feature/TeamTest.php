@@ -92,6 +92,40 @@ test('an existing user\'s role and permissions can be edited', function () {
         ->and($user->hasPermission(Permission::ManageMeetings))->toBeFalse();
 });
 
+test('a team member can be deleted', function () {
+    $founder = User::factory()->founder()->create();
+    $this->actingAs($founder);
+
+    $intern = Role::where('slug', 'intern')->firstOrFail();
+    $user = User::factory()->withRole($intern)->create();
+
+    Livewire::test('pages::team.index')
+        ->call('deleteUser', $user->id);
+
+    expect(User::find($user->id))->toBeNull();
+});
+
+test('a user cannot delete their own account from the team page', function () {
+    $founder = User::factory()->founder()->create();
+    $this->actingAs($founder);
+
+    Livewire::test('pages::team.index')
+        ->call('deleteUser', $founder->id);
+
+    expect(User::find($founder->id))->not->toBeNull();
+});
+
+test('the last founder cannot be deleted', function () {
+    $founder = User::factory()->founder()->create();
+    $manager = User::factory()->create(['permissions' => [Permission::ManageTeam->value]]);
+    $this->actingAs($manager);
+
+    Livewire::test('pages::team.index')
+        ->call('deleteUser', $founder->id);
+
+    expect(User::find($founder->id))->not->toBeNull();
+});
+
 test('the last founder cannot be demoted to another role', function () {
     $founder = User::factory()->founder()->create();
     $this->actingAs($founder);

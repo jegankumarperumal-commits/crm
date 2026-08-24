@@ -29,11 +29,11 @@ class MeetingAlert extends Notification
         $lead = $this->meeting->lead;
         $leadLabel = $lead->name.($lead->company ? " ({$lead->company})" : '');
 
-        [$subject, $greeting] = match ($this->reason) {
-            'created' => ["New meeting scheduled — {$lead->name}", 'A new meeting was scheduled.'],
-            'updated' => ["Meeting updated — {$lead->name}", 'A meeting was updated.'],
-            'missed' => ["Missed meeting — {$lead->name}", 'A scheduled meeting has passed without being marked complete.'],
-            'upcoming' => ["Meeting starting soon — {$lead->name}", 'You have a meeting starting in about 30 minutes.'],
+        [$subject, $greeting, $actionText] = match ($this->reason) {
+            'created' => ["New meeting scheduled — {$lead->name}", "A new meeting was scheduled with {$lead->name}.", 'View Meeting'],
+            'updated' => ["Meeting updated — {$lead->name}", "The meeting with {$lead->name} was updated.", 'View Meeting'],
+            'missed' => ["⚠ Action needed — missed meeting with {$lead->name}", "The meeting with {$lead->name} has passed without being marked complete. Please follow up or update its status.", 'Update Meeting Status'],
+            'upcoming' => ["⏰ Starting in 30 minutes — {$lead->name}", "Heads up — your meeting with {$lead->name} starts in about 30 minutes. Time to get ready.", 'View Meeting'],
         };
 
         $mail = (new MailMessage)
@@ -43,10 +43,32 @@ class MeetingAlert extends Notification
             ->line('Type: '.$this->meeting->type->label())
             ->line('Scheduled: '.$this->meeting->scheduled_at->format('M j, Y g:i A'));
 
+        if ($this->reason === 'missed') {
+            $mail->error();
+        }
+
+        if (filled($lead->phone)) {
+            $mail->line("Phone: {$lead->phone}");
+        }
+
+        if (filled($lead->email)) {
+            $mail->line("Email: {$lead->email}");
+        }
+
         if (filled($this->meeting->location)) {
             $mail->line("Location / Link: {$this->meeting->location}");
         }
 
-        return $mail->action('View Meetings', route('meetings.index'));
+        if ($this->meeting->assignedTo) {
+            $mail->line("Assigned to: {$this->meeting->assignedTo->name}");
+        }
+
+        if (filled($this->meeting->notes)) {
+            $mail->line("Notes: {$this->meeting->notes}");
+        }
+
+        return $mail
+            ->action($actionText, route('meetings.index'))
+            ->salutation('— '.config('app.name').' CRM');
     }
 }

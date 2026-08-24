@@ -6,7 +6,6 @@ use App\Models\Lead;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
@@ -39,17 +38,23 @@ new #[Title('Team')] #[Layout('layouts::coolapp')] class extends Component {
     public function deleteUser(int $userId): void
     {
         if ($userId === Auth::id()) {
-            throw ValidationException::withMessages(['user' => "You can't delete your own account here."]);
+            $this->dispatch('toast', variant: 'error', text: "You can't delete your own account here.");
+
+            return;
         }
 
         $user = User::with('role')->findOrFail($userId);
 
         if ($user->role?->is_founder && $this->founderCount() <= 1) {
-            throw ValidationException::withMessages(['user' => 'At least one Founder must remain.']);
+            $this->dispatch('toast', variant: 'error', text: 'At least one Founder must remain.');
+
+            return;
         }
 
         if (Lead::where('created_by', $userId)->exists()) {
-            throw ValidationException::withMessages(['user' => "This user has created leads and can't be deleted."]);
+            $this->dispatch('toast', variant: 'error', text: "This user has created leads and can't be deleted.");
+
+            return;
         }
 
         $user->delete();
@@ -123,7 +128,7 @@ new #[Title('Team')] #[Layout('layouts::coolapp')] class extends Component {
                         <button type="button" class="btn btn-sm btn-outline-secondary" wire:click="openEditForm({{ $user->id }})">
                             {{ __('Edit') }}
                         </button>
-                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#delete-user-modal-{{ $user->id }}">
+                        <button type="button" class="btn btn-sm btn-danger" wire:click="deleteUser({{ $user->id }})" wire:confirm="{{ __('Delete :name? This permanently removes their account.', ['name' => $user->name]) }}">
                             {{ __('Delete') }}
                         </button>
                     </td>
@@ -166,28 +171,6 @@ new #[Title('Team')] #[Layout('layouts::coolapp')] class extends Component {
                     </div>
                 </div>
 
-                <div wire:ignore.self class="modal fade" id="delete-user-modal-{{ $user->id }}" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">{{ __('Delete :name?', ['name' => $user->name]) }}</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
-                            </div>
-                            <div class="modal-body">
-                                <p>{{ __('This permanently removes their account.') }}</p>
-                                @error('user')
-                                    <div class="text-danger">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
-                                <button type="button" class="btn btn-danger" wire:click="deleteUser({{ $user->id }})">
-                                    {{ __('Delete') }}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             @endforeach
         </tbody>
     </table>

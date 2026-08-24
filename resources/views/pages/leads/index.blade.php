@@ -110,6 +110,15 @@ new #[Title('Leads')] #[Layout('layouts::coolapp')] class extends Component
         $this->dispatch('open-lead-form', leadId: $leadId);
     }
 
+    public function deleteLead(int $leadId): void
+    {
+        Lead::findOrFail($leadId)->delete();
+
+        unset($this->leads);
+
+        $this->dispatch('toast', variant: 'success', text: 'Lead deleted.');
+    }
+
     #[On('lead-saved')]
     public function onLeadSaved(): void
     {
@@ -194,6 +203,7 @@ new #[Title('Leads')] #[Layout('layouts::coolapp')] class extends Component
                     <td style="display:flex; gap:8px;">
                         <button type="button" class="btn btn-sm btn-outline-secondary" wire:click="openView({{ $lead->id }})">{{ __('View') }}</button>
                         <button type="button" class="btn btn-sm btn-outline-secondary" wire:click="openEditForm({{ $lead->id }})">{{ __('Edit') }}</button>
+                        <button type="button" class="btn btn-sm btn-danger" wire:click="deleteLead({{ $lead->id }})" wire:confirm="{{ __('Delete :name? This also removes its follow-ups, meetings, and quotations.', ['name' => $lead->name]) }}">{{ __('Delete') }}</button>
                     </td>
                 </tr>
             @empty

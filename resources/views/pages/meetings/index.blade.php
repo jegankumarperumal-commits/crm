@@ -84,6 +84,15 @@ new #[Title('Meetings')] #[Layout('layouts::coolapp')] class extends Component
         $this->dispatch('toast', variant: 'success', text: 'Meeting outcome updated.');
     }
 
+    public function deleteMeeting(int $meetingId): void
+    {
+        Meeting::findOrFail($meetingId)->delete();
+
+        unset($this->meetings, $this->stats);
+
+        $this->dispatch('toast', variant: 'success', text: 'Meeting deleted.');
+    }
+
     #[On('meeting-saved')]
     public function onMeetingSaved(): void
     {
@@ -191,6 +200,7 @@ new #[Title('Meetings')] #[Layout('layouts::coolapp')] class extends Component
                     <td style="display:flex; gap:8px;">
                         <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#view-meeting-{{ $meeting->id }}">{{ __('View') }}</button>
                         <button type="button" class="btn btn-sm btn-outline-secondary" wire:click="openEditForm({{ $meeting->id }})">{{ __('Edit') }}</button>
+                        <button type="button" class="btn btn-sm btn-danger" wire:click="deleteMeeting({{ $meeting->id }})" wire:confirm="{{ __('Delete the meeting with :name?', ['name' => $meeting->lead->name]) }}">{{ __('Delete') }}</button>
                     </td>
                 </tr>
 

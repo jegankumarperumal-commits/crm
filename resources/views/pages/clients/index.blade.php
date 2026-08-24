@@ -52,6 +52,24 @@ new #[Title('Clients & Invoices')] #[Layout('layouts::coolapp')] class extends C
         $this->dispatch('open-invoice-form', invoiceId: $invoiceId);
     }
 
+    public function deleteClient(int $clientId): void
+    {
+        Client::findOrFail($clientId)->delete();
+
+        unset($this->clients, $this->invoices, $this->stats);
+
+        $this->dispatch('toast', variant: 'success', text: 'Client deleted.');
+    }
+
+    public function deleteInvoice(int $invoiceId): void
+    {
+        Invoice::findOrFail($invoiceId)->delete();
+
+        unset($this->invoices, $this->stats);
+
+        $this->dispatch('toast', variant: 'success', text: 'Invoice deleted.');
+    }
+
     #[On('client-saved')]
     #[On('invoice-saved')]
     public function onSaved(): void
@@ -141,6 +159,7 @@ new #[Title('Clients & Invoices')] #[Layout('layouts::coolapp')] class extends C
                     <td style="display:flex; gap:8px;">
                         <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#view-client-{{ $client->id }}">{{ __('View') }}</button>
                         <button type="button" class="btn btn-sm btn-outline-secondary" wire:click="openCreateInvoiceForm({{ $client->id }})">{{ __('New Invoice') }}</button>
+                        <button type="button" class="btn btn-sm btn-danger" wire:click="deleteClient({{ $client->id }})" wire:confirm="{{ __('Delete :name? This also removes any linked invoices.', ['name' => $client->lead->name]) }}">{{ __('Delete') }}</button>
                     </td>
                 </tr>
 
@@ -229,6 +248,7 @@ new #[Title('Clients & Invoices')] #[Layout('layouts::coolapp')] class extends C
                     <td style="display:flex; gap:8px;">
                         <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#view-invoice-{{ $invoice->id }}">{{ __('View') }}</button>
                         <button type="button" class="btn btn-sm btn-outline-secondary" wire:click="openEditInvoiceForm({{ $invoice->id }})">{{ __('Edit') }}</button>
+                        <button type="button" class="btn btn-sm btn-danger" wire:click="deleteInvoice({{ $invoice->id }})" wire:confirm="{{ __('Delete invoice :number?', ['number' => $invoice->invoice_number ?? '—']) }}">{{ __('Delete') }}</button>
                     </td>
                 </tr>
 

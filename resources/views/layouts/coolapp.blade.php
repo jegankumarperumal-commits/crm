@@ -1,4 +1,4 @@
-@props(['title' => null])
+@props(['title' => null, 'dark' => false])
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -23,7 +23,7 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="app">
+<body class="app @if($dark) dashboard-dark @endif">
     <a class="visually-hidden-focusable skip-link" href="#main-content">Skip to main content</a>
     <div class="page-wrapper">
         <header class="header-mobile d-block d-lg-none">

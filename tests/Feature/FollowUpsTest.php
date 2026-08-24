@@ -64,6 +64,19 @@ test('marking a follow-up done sets its completed_at timestamp', function () {
     expect($followUp->fresh()->completed_at)->not->toBeNull();
 });
 
+test('a follow-up can be deleted', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $lead = Lead::factory()->create();
+    $followUp = FollowUp::factory()->for($lead)->for($user, 'createdBy')->create();
+
+    Livewire::test('pages::follow-ups.index')
+        ->call('deleteFollowUp', $followUp->id);
+
+    expect(FollowUp::find($followUp->id))->toBeNull();
+});
+
 test('a follow-up can be created via the form modal', function () {
     $user = User::factory()->create();
     $this->actingAs($user);

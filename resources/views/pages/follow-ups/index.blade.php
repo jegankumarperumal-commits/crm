@@ -68,6 +68,15 @@ new #[Title('Follow-ups')] #[Layout('layouts::coolapp')] class extends Component
         $this->dispatch('toast', variant: 'success', text: 'Follow-up marked done.');
     }
 
+    public function deleteFollowUp(int $followUpId): void
+    {
+        FollowUp::findOrFail($followUpId)->delete();
+
+        unset($this->followUps, $this->stats);
+
+        $this->dispatch('toast', variant: 'success', text: 'Follow-up deleted.');
+    }
+
     #[On('follow-up-saved')]
     public function onFollowUpSaved(): void
     {
@@ -176,6 +185,7 @@ new #[Title('Follow-ups')] #[Layout('layouts::coolapp')] class extends Component
                         @unless ($followUp->completed_at)
                             <button type="button" class="btn btn-sm btn-primary" wire:click="markDone({{ $followUp->id }})">{{ __('Mark done') }}</button>
                         @endunless
+                        <button type="button" class="btn btn-sm btn-danger" wire:click="deleteFollowUp({{ $followUp->id }})" wire:confirm="{{ __('Delete the follow-up for :name?', ['name' => $followUp->lead->name]) }}">{{ __('Delete') }}</button>
                     </td>
                 </tr>
 

@@ -33,6 +33,24 @@ test('importing a CSV creates leads and resolves source and status by name', fun
         ->and($lead->status->value)->toBe('contacted');
 });
 
+test('a purely numeric phone number imports without failing the string rule', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $file = leadsImportCsv("Jane Doe,,jane@acme.com,9878678900,,,\n");
+
+    Livewire::test('pages::leads.import-modal')
+        ->call('open')
+        ->set('file', $file)
+        ->call('import')
+        ->assertSet('importedCount', 1)
+        ->assertSet('failureMessages', []);
+
+    $lead = Lead::where('email', 'jane@acme.com')->firstOrFail();
+
+    expect($lead->phone)->toBe('9878678900');
+});
+
 test('rows missing a name are skipped and reported, valid rows still import', function () {
     $user = User::factory()->create();
     $this->actingAs($user);

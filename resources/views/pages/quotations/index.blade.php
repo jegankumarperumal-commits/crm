@@ -90,6 +90,15 @@ new #[Title('Quotations')] #[Layout('layouts::coolapp')] class extends Component
         $this->dispatch('toast', variant: 'success', text: 'Quotation status updated.');
     }
 
+    public function deleteQuotation(int $quotationId): void
+    {
+        Quotation::findOrFail($quotationId)->delete();
+
+        unset($this->quotations, $this->stats);
+
+        $this->dispatch('toast', variant: 'success', text: 'Quotation deleted.');
+    }
+
     #[On('quotation-saved')]
     public function onQuotationSaved(): void
     {
@@ -187,6 +196,7 @@ new #[Title('Quotations')] #[Layout('layouts::coolapp')] class extends Component
                     <td style="display:flex; gap:8px;">
                         <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#view-quotation-{{ $quotation->id }}">{{ __('View') }}</button>
                         <button type="button" class="btn btn-sm btn-outline-secondary" wire:click="openEditForm({{ $quotation->id }})">{{ __('Edit') }}</button>
+                        <button type="button" class="btn btn-sm btn-danger" wire:click="deleteQuotation({{ $quotation->id }})" wire:confirm="{{ __('Delete the quotation for :name?', ['name' => $quotation->lead->name]) }}">{{ __('Delete') }}</button>
                     </td>
                 </tr>
 

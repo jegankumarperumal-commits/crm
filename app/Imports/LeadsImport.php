@@ -11,12 +11,28 @@ use Illuminate\Validation\Validator;
 use Maatwebsite\Excel\Concerns\SkipsFailures;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
 
-class LeadsImport implements SkipsOnFailure, ToModel, WithHeadingRow, WithValidation
+class LeadsImport extends DefaultValueBinder implements SkipsOnFailure, ToModel, WithCustomValueBinder, WithHeadingRow, WithValidation
 {
     use SkipsFailures;
+
+    /**
+     * Forces every cell to be read as a string so numeric-looking values
+     * (phone numbers, etc.) don't get cast to int/float and fail the
+     * `string` validation rule below.
+     */
+    public function bindValue(Cell $cell, $value): bool
+    {
+        $cell->setValueExplicit((string) $value, DataType::TYPE_STRING);
+
+        return true;
+    }
 
     public int $importedCount = 0;
 

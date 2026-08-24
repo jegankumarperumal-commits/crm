@@ -81,6 +81,19 @@ test('the dateFilter query string pre-filters meetings to today', function () {
         ->assertDontSee('Next Week Office');
 });
 
+test('a meeting can be deleted', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $lead = Lead::factory()->create();
+    $meeting = Meeting::factory()->for($lead)->for($user, 'createdBy')->create();
+
+    Livewire::test('pages::meetings.index')
+        ->call('deleteMeeting', $meeting->id);
+
+    expect(Meeting::find($meeting->id))->toBeNull();
+});
+
 test('a meeting can be scheduled via the form modal', function () {
     $user = User::factory()->create();
     $this->actingAs($user);

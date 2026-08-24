@@ -67,3 +67,15 @@ test('openView loads the lead and dispatches the view modal', function () {
         ->assertDispatched('show-view-lead-modal')
         ->assertSee('Viewable Lead');
 });
+
+test('a lead can be deleted', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $lead = Lead::factory()->create();
+
+    Livewire::test('pages::leads.index')
+        ->call('deleteLead', $lead->id);
+
+    expect(Lead::find($lead->id))->toBeNull();
+});

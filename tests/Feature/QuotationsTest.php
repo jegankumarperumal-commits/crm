@@ -80,6 +80,19 @@ test('a quotation gets an auto-generated number once created', function () {
     expect($quotation->quotation_number)->toBe('QT-'.(1000 + $quotation->id));
 });
 
+test('a quotation can be deleted', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $lead = Lead::factory()->create();
+    $quotation = Quotation::factory()->for($lead)->for($user, 'createdBy')->create();
+
+    Livewire::test('pages::quotations.index')
+        ->call('deleteQuotation', $quotation->id);
+
+    expect(Quotation::find($quotation->id))->toBeNull();
+});
+
 test('moving a quotation past Prepared records a sent date', function () {
     $user = User::factory()->create();
     $this->actingAs($user);
