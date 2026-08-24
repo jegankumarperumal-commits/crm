@@ -19,7 +19,7 @@
     <link href="{{ asset('vendor/cooladmin/vendor/bootstrap-5.3.8.min.css') }}" rel="stylesheet" media="all"/>
     <link href="{{ asset('vendor/cooladmin/vendor/css-hamburgers/hamburgers.min.css') }}" rel="stylesheet" media="all"/>
     <link href="{{ asset('vendor/cooladmin/css/theme.css') }}" rel="stylesheet" media="all"/>
-    <link href="{{ asset('vendor/cooladmin/css/app.css') }}" rel="stylesheet" media="all"/>
+    <link href="{{ asset('vendor/cooladmin/css/app.css') }}?v={{ @filemtime(public_path('vendor/cooladmin/css/app.css')) ?: '1' }}" rel="stylesheet" media="all"/>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
