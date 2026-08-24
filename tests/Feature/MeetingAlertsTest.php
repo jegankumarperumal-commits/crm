@@ -31,7 +31,28 @@ test('scheduling a meeting sends a "created" alert to the configured recipient',
     );
 });
 
-test('editing a meeting sends an "updated" alert', function () {
+test('rescheduling a meeting sends an "updated" alert', function () {
+    config(['alerts.recipient_email' => 'admin@example.test']);
+
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $meeting = Meeting::factory()->for(Lead::factory())->for($user, 'createdBy')->create();
+
+    Notification::fake();
+
+    Livewire::test('pages::meetings.form-modal')
+        ->call('open', $meeting->id)
+        ->set('scheduled_at', now()->addDays(2)->format('Y-m-d\TH:i'))
+        ->call('save');
+
+    Notification::assertSentOnDemand(
+        MeetingAlert::class,
+        fn (MeetingAlert $notification) => $notification->reason === 'updated'
+    );
+});
+
+test('editing a meeting without changing its time does not send an alert', function () {
     config(['alerts.recipient_email' => 'admin@example.test']);
 
     $user = User::factory()->create();
@@ -46,10 +67,7 @@ test('editing a meeting sends an "updated" alert', function () {
         ->set('location', 'New Location')
         ->call('save');
 
-    Notification::assertSentOnDemand(
-        MeetingAlert::class,
-        fn (MeetingAlert $notification) => $notification->reason === 'updated'
-    );
+    Notification::assertNothingSent();
 });
 
 test('no alert is sent when no recipient email is configured', function () {

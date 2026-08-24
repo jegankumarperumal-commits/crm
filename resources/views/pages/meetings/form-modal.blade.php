@@ -73,10 +73,13 @@ new class extends Component
         $validated = $this->validate($this->meetingRules());
 
         $isNew = ! $this->meetingId;
+        $timeChanged = false;
 
         if ($this->meetingId) {
             $meeting = Meeting::findOrFail($this->meetingId);
+            $originalScheduledAt = $meeting->scheduled_at->format('Y-m-d H:i');
             $meeting->fill($validated);
+            $timeChanged = $originalScheduledAt !== $meeting->scheduled_at->format('Y-m-d H:i');
             // Reschedule/edit invalidates any alert already sent for the old plan.
             $meeting->upcoming_alert_sent_at = null;
             $meeting->missed_alert_sent_at = null;
@@ -85,7 +88,9 @@ new class extends Component
             $meeting = Meeting::create([...$validated, 'created_by' => Auth::id()]);
         }
 
-        app(MeetingAlertNotifier::class)->send($meeting, $isNew ? 'created' : 'updated');
+        if ($isNew || $timeChanged) {
+            app(MeetingAlertNotifier::class)->send($meeting, $isNew ? 'created' : 'updated');
+        }
 
         $this->dispatch('hide-bs-modal', id: 'meeting-form-modal');
 
