@@ -5307,6 +5307,21 @@ body.app .accent-card--danger {
 }
 /* ---------- Small phones (< 576px) ------------------------------------- */
 @media (max-width: 575.98px) {
+  /* Data tables — every list table here is (identifier, ...details,
+     Actions). On phones keep only the identifier and Actions columns
+     visible so View/Edit/Delete are reachable without scrolling; the
+     dropped columns are still available via the row's "View" modal. */
+  body.app .m-table th:not(:first-child):not(:last-child),
+  body.app .m-table td:not(:first-child):not(:last-child) {
+    display: none;
+  }
+  /* Actions cell — let View/Edit/Delete wrap onto a second line instead
+     of forcing the row (and the whole table) to overflow sideways. */
+  body.app .m-table td:last-child {
+    flex-wrap: wrap;
+    white-space: normal;
+    row-gap: 6px;
+  }
   /* Topbar — drop the search field on phones (use the sidebar nav instead) */
   body.app .form-header {
     display: none;
